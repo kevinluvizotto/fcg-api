@@ -1,0 +1,22 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# Build results
+bin/
+obj/
+
+# ASP.NET Core
+wwwroot/
+
+# Logs
+*.log
+
+# Sistema operacional
+Thumbs.db
+Desktop.ini
+
+# Rider, VSCode
+.idea/
+.vscode/
