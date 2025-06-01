@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FCG.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+27c6d68b77ee5374b45039d31366e41f4c8b72de")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6f4c452d756da45f175b0c0a02bfde7d26a3f9e7")]
 [assembly: System.Reflection.AssemblyProductAttribute("FCG.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FCG.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

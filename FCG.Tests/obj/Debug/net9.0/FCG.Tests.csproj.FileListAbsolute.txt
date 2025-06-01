@@ -168,3 +168,4 @@ C:\Users\kevin\source\repos\git\FCG.Tests\obj\Debug\net9.0\refint\FCG.Tests.dll
 C:\Users\kevin\source\repos\git\FCG.Tests\obj\Debug\net9.0\FCG.Tests.pdb
 C:\Users\kevin\source\repos\git\FCG.Tests\obj\Debug\net9.0\FCG.Tests.genruntimeconfig.cache
 C:\Users\kevin\source\repos\git\FCG.Tests\obj\Debug\net9.0\ref\FCG.Tests.dll
+C:\Users\kevin\source\repos\git\FCG.Tests\bin\Debug\net9.0\Microsoft.EntityFrameworkCore.InMemory.dll

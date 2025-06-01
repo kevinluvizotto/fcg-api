@@ -206,6 +206,24 @@
       "Microsoft.EntityFrameworkCore.Analyzers/9.0.5": {
         "type": "package"
       },
+      "Microsoft.EntityFrameworkCore.InMemory/9.0.5": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.EntityFrameworkCore": "9.0.5",
+          "Microsoft.Extensions.Caching.Memory": "9.0.5",
+          "Microsoft.Extensions.Logging": "9.0.5"
+        },
+        "compile": {
+          "lib/net8.0/Microsoft.EntityFrameworkCore.InMemory.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.EntityFrameworkCore.InMemory.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "Microsoft.EntityFrameworkCore.Relational/9.0.5": {
         "type": "package",
         "dependencies": {
@@ -1891,6 +1909,21 @@
         "docs/PACKAGE.md",
         "microsoft.entityframeworkcore.analyzers.9.0.5.nupkg.sha512",
         "microsoft.entityframeworkcore.analyzers.nuspec"
+      ]
+    },
+    "Microsoft.EntityFrameworkCore.InMemory/9.0.5": {
+      "sha512": "+nC0uyM5ztN3rV7yUraTlQhXZMV98MP1ZEn4OLlz4c0l5bOGbvHIcvsHA5RitzJTsP5UX/rwfpc3aOsTBS02jA==",
+      "type": "package",
+      "path": "microsoft.entityframeworkcore.inmemory/9.0.5",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "PACKAGE.md",
+        "lib/net8.0/Microsoft.EntityFrameworkCore.InMemory.dll",
+        "lib/net8.0/Microsoft.EntityFrameworkCore.InMemory.xml",
+        "microsoft.entityframeworkcore.inmemory.9.0.5.nupkg.sha512",
+        "microsoft.entityframeworkcore.inmemory.nuspec"
       ]
     },
     "Microsoft.EntityFrameworkCore.Relational/9.0.5": {
@@ -3926,6 +3959,7 @@
   "projectFileDependencyGroups": {
     "net9.0": [
       "FCG.Api >= 1.0.0",
+      "Microsoft.EntityFrameworkCore.InMemory >= 9.0.5",
       "Microsoft.NET.Test.Sdk >= 17.12.0",
       "coverlet.collector >= 6.0.2",
       "xunit >= 2.9.2",
@@ -3986,6 +4020,10 @@
       "net9.0": {
         "targetAlias": "net9.0",
         "dependencies": {
+          "Microsoft.EntityFrameworkCore.InMemory": {
+            "target": "Package",
+            "version": "[9.0.5, )"
+          },
           "Microsoft.NET.Test.Sdk": {
             "target": "Package",
             "version": "[17.12.0, )"
