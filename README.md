@@ -56,22 +56,24 @@ Uma API RESTful desenvolvida em **.NET 8** para gerenciar usuários e seus jogos 
 
 ---
 
-## Estrutura do Projeto
+## ? Aplicação de TDD no Projeto
 
-```
-/FCG
-|
-|--- Domain/               # Entidades de domínio (User, Game)
-|--- Infrastructure/       # Data Context (EF Core)
-|--- Application/          # DTOs, helpers
-|--- FCG.Api/              # API principal (.NET 8 minimal APIs)
-|   |--- wwwroot/          # Frontend HTML/JS puro
-|   |--- Program.cs        # Endpoints e configuração
-|   |--- Services/         # Serviços (JWT, etc.)
-|   |--- appsettings.json  # Configurações (JWT, DB)
-|--- FCG.Tests/            # Projeto de testes unitários com xUnit
-|--- .github/workflows/    # CI/CD para Azure (GitHub Actions)
-```
+O projeto aplica **TDD (Test-Driven Development)** no módulo de validação de senhas para garantir qualidade e segurança desde a concepção da funcionalidade.
+
+### Módulo com TDD aplicado:
+
+- **Validação de senha segura**  
+  Implementado no helper `ValidationHelper.IsValidPassword`, este método foi escrito após a criação de testes unitários cobrindo os seguintes critérios:
+  - Senha com no mínimo 8 caracteres
+  - Contém letra, número e caractere especial
+
+### Processo seguido:
+
+1. **Red:** Testes foram escritos antecipadamente, falhando enquanto a lógica ainda não existia.
+2. **Green:** A lógica foi implementada para passar nos testes.
+3. **Refactor:** A função foi refatorada para legibilidade e reutilização.
+
+> Esta abordagem garante que a funcionalidade atenda aos requisitos de segurança desde sua criação, validando a aplicação prática de TDD neste projeto.
 
 ---
 
