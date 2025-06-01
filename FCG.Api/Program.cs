@@ -95,7 +95,11 @@ app.UseAuthorization();   // 🔐 Middleware de autorização
 
 // 🌐 Rotas mínimas
 
-app.MapGet("/", () => "🚀 FCG API está rodando!");
+app.MapGet("/", context =>
+{
+    context.Response.Redirect("/login.html");
+    return Task.CompletedTask;
+});
 
 app.MapGet("/users", [Authorize(Roles = "Admin")] async (ApplicationDbContext db) =>
 {
