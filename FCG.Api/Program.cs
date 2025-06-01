@@ -87,7 +87,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseStaticFiles();
+app.UseDefaultFiles(); // Habilita carregar index.html automaticamente
+app.UseStaticFiles();  // Serve arquivos da pasta wwwroot
 app.UseHttpsRedirection();
 app.UseAuthentication();  // 🔐 Middleware de autenticação
 app.UseAuthorization();   // 🔐 Middleware de autorização
