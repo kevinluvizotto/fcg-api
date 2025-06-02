@@ -15,22 +15,22 @@
             <li class="nav-item ms-auto"><a class="btn btn-outline-secondary" href="dashboard.html">← Voltar</a></li>
         </ul>
 
-        <h5 class="mt-4">➕ Criar Novo Usuário</h5>
-        <form class="row g-2 mb-4" onsubmit="createUser(event)">
-            <div class="col-md-3"><input type="text" class="form-control" id="newName" placeholder="Nome" required></div>
-            <div class="col-md-3"><input type="email" class="form-control" id="newEmail" placeholder="E-mail" required></div>
-            <div class="col-md-3"><input type="password" class="form-control" id="newPassword" placeholder="Senha" required></div>
-            <div class="col-md-2">
-                <select class="form-select" id="newRole" required>
-                    <option value="User">User</option>
-                    <option value="Admin">Admin</option>
-                </select>
-            </div>
-            <div class="col-md-1"><button class="btn btn-success w-100">Criar</button></div>
-        </form>
-
         <!-- Aba de Usuários -->
         <div id="userTabContent">
+            <h5 class="mt-4">➕ Criar Novo Usuário</h5>
+            <form class="row g-2 mb-4" onsubmit="createUser(event)">
+                <div class="col-md-3"><input type="text" class="form-control" id="newName" placeholder="Nome" required></div>
+                <div class="col-md-3"><input type="email" class="form-control" id="newEmail" placeholder="E-mail" required></div>
+                <div class="col-md-3"><input type="password" class="form-control" id="newPassword" placeholder="Senha" required></div>
+                <div class="col-md-2">
+                    <select class="form-select" id="newRole" required>
+                        <option value="User">User</option>
+                        <option value="Admin">Admin</option>
+                    </select>
+                </div>
+                <div class="col-md-1"><button class="btn btn-success w-100">Criar</button></div>
+            </form>
+
             <h4>👥 Gerenciar Usuários</h4>
             <div class="mb-3">
                 <input class="form-control" id="userSearch" placeholder="🔎 Buscar por nome ou email" oninput="filterUsers()">
@@ -99,35 +99,35 @@
         }
 
         function renderUserList(users) {
-            users.sort((a, b) => a.name.localeCompare(b.name)); // 🆕 Ordena por nome
+            users.sort((a, b) => a.name.localeCompare(b.name));
 
             const html = users.map(u => `
-        <div class="card mb-3">
-            <div class="card-body">
-                <form onsubmit="updateUser(event, '${u.id}')">
-                    <div class="row g-2 align-items-center">
-                        <div class="col-md-3">
-                            <input class="form-control" type="text" value="${u.name}" id="name-${u.id}">
-                        </div>
-                        <div class="col-md-3">
-                            <input class="form-control" type="email" value="${u.email}" id="email-${u.id}">
-                        </div>
-                        <div class="col-md-2">
-                            <select class="form-select" id="role-${u.id}">
-                                <option ${u.role === 'User' ? 'selected' : ''}>User</option>
-                                <option ${u.role === 'Admin' ? 'selected' : ''}>Admin</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4 d-flex gap-2">
-                            <button type="submit" class="btn btn-primary btn-sm">💾</button>
-                            <button type="button" class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}')">🗑️</button>
-                            <button type="button" class="btn btn-warning btn-sm" onclick="resetPassword('${u.id}', '${u.email}')">🔐</button>
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <form onsubmit="updateUser(event, '${u.id}')">
+                                <div class="row g-2 align-items-center">
+                                    <div class="col-md-3">
+                                        <input class="form-control" type="text" value="${u.name}" id="name-${u.id}">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input class="form-control" type="email" value="${u.email}" id="email-${u.id}">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <select class="form-select" id="role-${u.id}">
+                                            <option ${u.role === 'User' ? 'selected' : ''}>User</option>
+                                            <option ${u.role === 'Admin' ? 'selected' : ''}>Admin</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 d-flex gap-2">
+                                        <button type="submit" class="btn btn-primary btn-sm">💾</button>
+                                        <button type="button" class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}')">🗑️</button>
+                                        <button type="button" class="btn btn-warning btn-sm" onclick="resetPassword('${u.id}', '${u.email}')">🔐</button>
+                                    </div>
+                                </div>
+                            </form>
                         </div>
                     </div>
-                </form>
-            </div>
-        </div>
-    `).join("");
+                `).join("");
 
             document.getElementById("userList").innerHTML = html;
         }
@@ -240,31 +240,31 @@
         }
 
         function renderGameList(games) {
-            games.sort((a, b) => a.title.localeCompare(b.title)); // 🆕 Ordena por título
+            games.sort((a, b) => a.title.localeCompare(b.title));
 
             const html = games.map(g => `
-        <div class="card mb-3">
-            <div class="card-body">
-                <form onsubmit="updateGame(event, '${g.id}')">
-                    <div class="row g-2 align-items-center">
-                        <div class="col-md-3">
-                            <input type="text" class="form-control" id="title-${g.id}" value="${g.title}">
-                        </div>
-                        <div class="col-md-4">
-                            <textarea class="form-control" rows="2" id="description-${g.id}">${g.description}</textarea>
-                        </div>
-                        <div class="col-md-2">
-                            <input type="number" class="form-control" step="0.01" id="price-${g.id}" value="${g.price}">
-                        </div>
-                        <div class="col-md-3 d-flex gap-2">
-                            <button type="submit" class="btn btn-primary btn-sm">💾</button>
-                            <button type="button" class="btn btn-danger btn-sm" onclick="deleteGame('${g.id}')">🗑️</button>
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <form onsubmit="updateGame(event, '${g.id}')">
+                                <div class="row g-2 align-items-center">
+                                    <div class="col-md-3">
+                                        <input type="text" class="form-control" id="title-${g.id}" value="${g.title}">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <textarea class="form-control" rows="2" id="description-${g.id}">${g.description}</textarea>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="number" class="form-control" step="0.01" id="price-${g.id}" value="${g.price}">
+                                    </div>
+                                    <div class="col-md-3 d-flex gap-2">
+                                        <button type="submit" class="btn btn-primary btn-sm">💾</button>
+                                        <button type="button" class="btn btn-danger btn-sm" onclick="deleteGame('${g.id}')">🗑️</button>
+                                    </div>
+                                </div>
+                            </form>
                         </div>
                     </div>
-                </form>
-            </div>
-        </div>
-    `).join("");
+                `).join("");
 
             document.getElementById("gameList").innerHTML = html;
         }
@@ -272,9 +272,9 @@
         function updateGame(e, id) {
             e.preventDefault();
             const body = {
-                title: document.getElementById(`game-title-${id}`).value,
-                description: document.getElementById(`game-desc-${id}`).value,
-                price: parseFloat(document.getElementById(`game-price-${id}`).value)
+                title: document.getElementById(`title-${id}`).value,
+                description: document.getElementById(`description-${id}`).value,
+                price: parseFloat(document.getElementById(`price-${id}`).value)
             };
 
             fetch(`${api}/games/${id}`, {

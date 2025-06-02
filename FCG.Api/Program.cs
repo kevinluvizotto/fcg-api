@@ -193,7 +193,7 @@ app.MapPut("/me/password", [Authorize] async (ClaimsPrincipal user, UpdatePasswo
         return Results.BadRequest("Senha atual incorreta.");
 
     if (!ValidationHelper.IsValidPassword(pwd.NewPassword))
-        return Results.BadRequest("Nova senha inválida.");
+        return Results.BadRequest("Senha inválida. Ela deve conter no mínimo 8 caracteres, incluindo letras, números e caracteres especiais.");
 
     dbUser.PasswordHash = BCrypt.Net.BCrypt.HashPassword(pwd.NewPassword);
     await db.SaveChangesAsync();
@@ -203,13 +203,19 @@ app.MapPut("/me/password", [Authorize] async (ClaimsPrincipal user, UpdatePasswo
 
 app.MapPost("/users/{id}/reset-password", [Authorize(Roles = "Admin")] async (Guid id, ResetPasswordDto dto, ApplicationDbContext db) =>
 {
+    if (!ValidationHelper.IsValidPassword(dto.NewPassword))
+        return Results.BadRequest("A senha deve ter no mínimo 8 caracteres, incluindo letras maiúsculas, minúsculas, números e caracteres especiais.");
+
     var user = await db.Users.FindAsync(id);
-    if (user is null) return Results.NotFound("Usuário não encontrado.");
+    if (user is null)
+        return Results.NotFound("Usuário não encontrado.");
 
     user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
     await db.SaveChangesAsync();
+
     return Results.Ok("Senha redefinida com sucesso.");
-});
+})
+.WithTags("Usuários");
 
 // ✅ GAMES
 app.MapGet("/games", async (ApplicationDbContext db) =>
