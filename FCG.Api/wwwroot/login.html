@@ -48,7 +48,6 @@
     </style>
 </head>
 <body>
-
     <div class="login-card">
         <div class="logo">
             <i class="bi bi-controller"></i> FCG Login
@@ -65,36 +64,86 @@
             </div>
             <button type="submit" class="btn btn-primary w-100">🎮 Entrar</button>
         </form>
+    
+        <div class="text-center mt-3">
+            <button class="btn btn-outline-secondary w-100" onclick="toggleRegister()">Primeiro acesso? Criar conta</button>
+        </div>
+
+        <!-- Formulário de Registro (oculto por padrão) -->
+        <div class="card mt-3 d-none" id="registerCard">
+            <div class="card-body">
+                <form onsubmit="register(event)">
+                    <div class="mb-3">
+                        <input type="text" id="newName" class="form-control" placeholder="Nome completo" required>
+                    </div>
+                    <div class="mb-3">
+                        <input type="email" id="newEmail" class="form-control" placeholder="E-mail" required>
+                    </div>
+                    <div class="mb-3">
+                        <input type="password" id="newPassword" class="form-control" placeholder="Senha (mín. 8 c/ letras, números e caract. especiais)" required>
+                    </div>
+                    <button class="btn btn-success w-100">Cadastrar</button>
+                </form>
+            </div>
+        </div>
     </div>
 
     <script>
         const api = "";
+
         function login(e) {
             e.preventDefault();
-            const body = {
-                email: document.getElementById("email").value,
-                passwordHash: document.getElementById("password").value
-            };
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
 
             fetch(`${api}/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(body)
+                body: JSON.stringify({ email, passwordHash: password })
             })
-                .then(async res => {
-                    const result = await res.json();
-                    if (res.ok && result.token) {
+                .then(async r => {
+                    if (r.ok) {
+                        const result = await r.json();
                         localStorage.setItem("fcg_token", result.token);
                         window.location.href = "dashboard.html";
-                    } else {
+                    } else if (r.status === 401) {
                         alert("❌ E-mail ou senha inválidos.");
+                    } else {
+                        const msg = await r.text();
+                        alert("❌ Erro inesperado: " + msg);
                     }
                 })
                 .catch(err => {
-                    alert("Erro ao tentar fazer login: " + err.message);
+                    alert("❌ Erro de rede ou servidor: " + err.message);
+                });
+        }
+
+        function toggleRegister() {
+            document.getElementById("registerCard").classList.toggle("d-none");
+        }
+
+        function register(e) {
+            e.preventDefault();
+            const name = document.getElementById("newName").value;
+            const email = document.getElementById("newEmail").value;
+            const password = document.getElementById("newPassword").value;
+
+            fetch(`${api}/users`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, email, passwordHash: password, role: "User" })
+            })
+                .then(async r => {
+                    const msg = await r.text();
+                    if (r.ok) {
+                        alert("✅ Conta criada com sucesso! Faça login.");
+                        e.target.reset();
+                        document.getElementById("registerCard").classList.add("d-none");
+                    } else {
+                        alert("❌ Erro: " + msg);
+                    }
                 });
         }
     </script>
-
 </body>
 </html>

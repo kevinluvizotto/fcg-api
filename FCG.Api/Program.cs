@@ -248,6 +248,24 @@ app.MapDelete("/games/{id}", [Authorize(Roles = "Admin")] async (Guid id, Applic
 })
 .WithTags("Jogos");
 
+app.MapPut("/games/{id}", [Authorize(Roles = "Admin")] async (Guid id, Game updatedGame, ApplicationDbContext db) =>
+{
+    var game = await db.Games.FindAsync(id);
+    if (game is null) return Results.NotFound("Jogo não encontrado.");
+
+    if (!string.Equals(game.Title, updatedGame.Title, StringComparison.OrdinalIgnoreCase)
+        && await db.Games.AnyAsync(g => g.Title.ToLower() == updatedGame.Title.ToLower()))
+        return Results.BadRequest("Outro jogo com esse título já existe.");
+
+    game.Title = updatedGame.Title;
+    game.Description = updatedGame.Description;
+    game.Price = updatedGame.Price;
+
+    await db.SaveChangesAsync();
+    return Results.Ok("Jogo atualizado com sucesso.");
+})
+.WithTags("Jogos");
+
 // ✅ Biblioteca do Usuário
 app.MapGet("/me/games", [Authorize] async (ClaimsPrincipal user, ApplicationDbContext db) =>
 {

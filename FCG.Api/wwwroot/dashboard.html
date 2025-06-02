@@ -18,6 +18,14 @@
             <li class="nav-item ms-auto"><button class="btn btn-danger" onclick="logout()">🚪 Sair</button></li>
         </ul>
 
+        <div id="storeFilter" class="mb-3" style="display: none;">
+            <input class="form-control" id="searchInput" placeholder="🔍 Buscar jogo por título" oninput="filterStore()">
+        </div>
+
+        <div id="libraryFilter" class="mb-3" style="display: none;">
+            <input class="form-control" id="librarySearch" placeholder="🔍 Buscar na biblioteca" oninput="filterLibrary()">
+        </div>
+
         <div id="admin-btn" class="mb-3" style="display: none;">
             <button class="btn btn-warning" onclick="goToAdmin()"><i class="bi bi-tools"></i> Área Administrativa</button>
         </div>
@@ -146,32 +154,20 @@
             })
                 .then(r => r.json())
                 .then(games => {
-                    // Primeiro, buscar jogos já adquiridos
+                    games.sort((a, b) => a.title.localeCompare(b.title)); // ordena alfabeticamente
+
+                    // salvar todos os jogos para busca
+                    window.allGames = games;
+
+                    // buscar jogos já adquiridos
                     fetch(`${api}/me/games`, {
                         headers: { "Authorization": `Bearer ${token}` }
                     })
                         .then(r => r.json())
                         .then(myGames => {
-                            const ownedIds = myGames.map(g => g.id);
-
-                            const html = games.map(g => {
-                                const alreadyOwned = ownedIds.includes(g.id);
-                                return `
-                    <div class="card mb-3 shadow-sm border-${alreadyOwned ? 'secondary' : 'primary'}">
-                        <div class="card-body">
-                            <h5 class="card-title">${g.title}</h5>
-                            <p class="card-text">${g.description}</p>
-                            <p><strong>R$${g.price}</strong></p>
-                            <button class="btn btn-${alreadyOwned ? 'secondary' : 'primary'} btn-sm"
-                                    ${alreadyOwned ? 'disabled' : `onclick="buyGame('${g.id}')"`}>
-                                ${alreadyOwned ? '🎮 Já adquirido' : '🎁 Adquirir'}
-                            </button>
-                        </div>
-                    </div>
-                `;
-                            }).join("");
-
-                            show(`<h4>🛒 Jogos Disponíveis</h4>${html}`);
+                            window.ownedIds = myGames.map(g => g.id);
+                            renderStore(games);
+                            document.getElementById("storeFilter").style.display = "block";
                         });
                 });
         }
@@ -211,21 +207,9 @@
             })
                 .then(r => r.json())
                 .then(games => {
-                    const html = games.length > 0
-                        ? games.map(g => `
-                            <div class="card mb-3">
-                                <div class="card-body d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h5>${g.title}</h5>
-                                        <p>${g.description}</p>
-                                        <strong>R$${g.price}</strong>
-                                    </div>
-                                    <button class="btn btn-outline-danger btn-sm" onclick="removeGame('${g.id}')">❌ Remover</button>
-                                </div>
-                            </div>
-                        `).join("")
-                        : "<div class='alert alert-info'>Nenhum jogo adquirido ainda.</div>";
-                    show(`<h4>📚 Minha Biblioteca</h4>${html}`);
+                    window.myGamesList = games; // salva todos os jogos da biblioteca
+                    renderLibrary(games);
+                    document.getElementById("libraryFilter").style.display = "block";
                 });
         }
 
@@ -240,6 +224,73 @@
 
         function show(content) {
             document.getElementById("output").innerHTML = content;
+        }
+
+        function showTab(tab) {
+            // Esconde todas as barras de busca antes
+            document.getElementById("storeFilter").style.display = "none";
+            document.getElementById("libraryFilter").style.display = "none";
+
+            if (tab === "profile") getProfile();
+            if (tab === "store") {
+                listGames();
+                document.getElementById("storeFilter").style.display = "block";
+            }
+            if (tab === "library") {
+                myGames();
+                document.getElementById("libraryFilter").style.display = "block";
+            }
+        }
+
+        function filterStore() {
+            const term = document.getElementById("searchInput").value.toLowerCase();
+            const filtered = window.allGames.filter(g => g.title.toLowerCase().includes(term));
+            renderStore(filtered);
+        }
+
+        function renderStore(games) {
+            const html = games.map(g => {
+                const alreadyOwned = window.ownedIds.includes(g.id);
+                return `
+            <div class="card mb-3 shadow-sm border-${alreadyOwned ? 'secondary' : 'primary'}">
+                <div class="card-body">
+                    <h5 class="card-title">${g.title}</h5>
+                    <p class="card-text">${g.description}</p>
+                    <p><strong>R$${g.price}</strong></p>
+                    <button class="btn btn-${alreadyOwned ? 'secondary' : 'primary'} btn-sm"
+                            ${alreadyOwned ? 'disabled' : `onclick="buyGame('${g.id}')"`}>
+                        ${alreadyOwned ? '🎮 Já adquirido' : '🎁 Adquirir'}
+                    </button>
+                </div>
+            </div>
+        `;
+            }).join("");
+
+            show(`<h4>🛒 Jogos Disponíveis</h4>${html}`);
+        }
+
+        function renderLibrary(games) {
+            const html = games.length > 0
+                ? games.map(g => `
+            <div class="card mb-3">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5>${g.title}</h5>
+                        <p>${g.description}</p>
+                        <strong>R$${g.price}</strong>
+                    </div>
+                    <button class="btn btn-outline-danger btn-sm" onclick="removeGame('${g.id}')">❌ Remover</button>
+                </div>
+            </div>
+        `).join("")
+                : "<div class='alert alert-info'>Nenhum jogo adquirido ainda.</div>";
+            show(`<h4>📚 Minha Biblioteca</h4>${html}`);
+        }
+
+        function filterLibrary() {
+            const term = document.getElementById("librarySearch").value.toLowerCase();
+            const filtered = window.myGamesList.filter(g => g.title.toLowerCase().includes(term));
+            renderLibrary(filtered);
         }
     </script>
 </body>
