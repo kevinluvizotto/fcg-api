@@ -201,7 +201,7 @@ app.MapPut("/me/password", [Authorize] async (ClaimsPrincipal user, UpdatePasswo
 })
 .WithTags("Perfil");
 
-app.MapPut("/users/{id}/reset-password", [Authorize(Roles = "Admin")] async (Guid id, ResetPasswordDto dto, ApplicationDbContext db) =>
+app.MapPost("/users/{id}/reset-password", [Authorize(Roles = "Admin")] async (Guid id, ResetPasswordDto dto, ApplicationDbContext db) =>
 {
     var user = await db.Users.FindAsync(id);
     if (user is null) return Results.NotFound("Usuário não encontrado.");

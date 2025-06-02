@@ -15,6 +15,20 @@
             <li class="nav-item ms-auto"><a class="btn btn-outline-secondary" href="dashboard.html">← Voltar</a></li>
         </ul>
 
+        <h5 class="mt-4">➕ Criar Novo Usuário</h5>
+        <form class="row g-2 mb-4" onsubmit="createUser(event)">
+            <div class="col-md-3"><input type="text" class="form-control" id="newName" placeholder="Nome" required></div>
+            <div class="col-md-3"><input type="email" class="form-control" id="newEmail" placeholder="E-mail" required></div>
+            <div class="col-md-3"><input type="password" class="form-control" id="newPassword" placeholder="Senha" required></div>
+            <div class="col-md-2">
+                <select class="form-select" id="newRole" required>
+                    <option value="User">User</option>
+                    <option value="Admin">Admin</option>
+                </select>
+            </div>
+            <div class="col-md-1"><button class="btn btn-success w-100">Criar</button></div>
+        </form>
+
         <!-- Aba de Usuários -->
         <div id="userTabContent">
             <h4>👥 Gerenciar Usuários</h4>
@@ -85,33 +99,35 @@
         }
 
         function renderUserList(users) {
+            users.sort((a, b) => a.name.localeCompare(b.name)); // 🆕 Ordena por nome
+
             const html = users.map(u => `
-                    <div class="card mb-3">
-                        <div class="card-body">
-                            <form onsubmit="updateUser(event, '${u.id}')">
-                                <div class="row g-2 align-items-center">
-                                    <div class="col-md-3">
-                                        <input class="form-control" type="text" value="${u.name}" id="name-${u.id}">
-                                    </div>
-                                    <div class="col-md-3">
-                                        <input class="form-control" type="email" value="${u.email}" id="email-${u.id}">
-                                    </div>
-                                    <div class="col-md-2">
-                                        <select class="form-select" id="role-${u.id}">
-                                            <option ${u.role === 'User' ? 'selected' : ''}>User</option>
-                                            <option ${u.role === 'Admin' ? 'selected' : ''}>Admin</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-4 d-flex gap-2">
-                                        <button type="submit" class="btn btn-primary btn-sm">💾</button>
-                                        <button type="button" class="btn btn-warning btn-sm" onclick="resetPassword('${u.id}', '${u.email}')">🔐</button>
-                                        <button type="button" class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}')">🗑️</button>                                     
-                                    </div>
-                                </div>
-                            </form>
+        <div class="card mb-3">
+            <div class="card-body">
+                <form onsubmit="updateUser(event, '${u.id}')">
+                    <div class="row g-2 align-items-center">
+                        <div class="col-md-3">
+                            <input class="form-control" type="text" value="${u.name}" id="name-${u.id}">
+                        </div>
+                        <div class="col-md-3">
+                            <input class="form-control" type="email" value="${u.email}" id="email-${u.id}">
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select" id="role-${u.id}">
+                                <option ${u.role === 'User' ? 'selected' : ''}>User</option>
+                                <option ${u.role === 'Admin' ? 'selected' : ''}>Admin</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 d-flex gap-2">
+                            <button type="submit" class="btn btn-primary btn-sm">💾</button>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}')">🗑️</button>
+                            <button type="button" class="btn btn-warning btn-sm" onclick="resetPassword('${u.id}', '${u.email}')">🔐</button>
                         </div>
                     </div>
-                `).join("");
+                </form>
+            </div>
+        </div>
+    `).join("");
 
             document.getElementById("userList").innerHTML = html;
         }
@@ -156,13 +172,20 @@
         function resetPassword(id, email) {
             if (!confirm(`Redefinir a senha para o usuário:\n${email}?`)) return;
 
+            const newPassword = prompt("Digite a nova senha segura:");
+            if (!newPassword) return;
+
             fetch(`${api}/users/${id}/reset-password`, {
                 method: "POST",
-                headers: { "Authorization": `Bearer ${token}` }
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ newPassword })
             })
                 .then(async r => {
                     const msg = await r.text();
-                    alert(r.ok ? `🔐 Nova senha enviada para ${email}:\n${msg}` : "❌ Erro: " + msg);
+                    alert(r.ok ? `🔐 Senha redefinida!\n${msg}` : "❌ Erro: " + msg);
                 });
         }
 
@@ -172,6 +195,36 @@
                 u.name.toLowerCase().includes(term) || u.email.toLowerCase().includes(term)
             );
             renderUserList(filtered);
+        }
+
+        function createUser(e) {
+            e.preventDefault();
+
+            const body = {
+                name: document.getElementById("newName").value,
+                email: document.getElementById("newEmail").value,
+                passwordHash: document.getElementById("newPassword").value,
+                role: document.getElementById("newRole").value
+            };
+
+            fetch(`${api}/users`, {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(body)
+            })
+                .then(async r => {
+                    const msg = await r.text();
+                    if (r.ok) {
+                        alert("✅ Usuário criado com sucesso!");
+                        listUsers();
+                        e.target.reset();
+                    } else {
+                        alert("❌ Erro: " + msg);
+                    }
+                });
         }
 
         // === Jogos ===
@@ -187,23 +240,31 @@
         }
 
         function renderGameList(games) {
+            games.sort((a, b) => a.title.localeCompare(b.title)); // 🆕 Ordena por título
+
             const html = games.map(g => `
-                    <div class="card mb-3">
-                        <div class="card-body">
-                            <form onsubmit="updateGame(event, '${g.id}')">
-                                <div class="row g-2 align-items-center">
-                                    <div class="col-md-3"><input class="form-control" type="text" value="${g.title}" id="game-title-${g.id}"></div>
-                                    <div class="col-md-4"><textarea class="form-control" id="description-${g.id}" rows="2" style="resize: vertical; min-height: 38px;">${g.description}</textarea></div>
-                                    <div class="col-md-2"><input class="form-control" type="number" value="${g.price}" id="game-price-${g.id}"></div>
-                                    <div class="col-md-3 d-flex gap-2">
-                                        <button class="btn btn-primary btn-sm">💾</button>
-                                        <button type="button" class="btn btn-danger btn-sm" onclick="deleteGame('${g.id}')">🗑️</button>
-                                    </div>
-                                </div>
-                            </form>
+        <div class="card mb-3">
+            <div class="card-body">
+                <form onsubmit="updateGame(event, '${g.id}')">
+                    <div class="row g-2 align-items-center">
+                        <div class="col-md-3">
+                            <input type="text" class="form-control" id="title-${g.id}" value="${g.title}">
+                        </div>
+                        <div class="col-md-4">
+                            <textarea class="form-control" rows="2" id="description-${g.id}">${g.description}</textarea>
+                        </div>
+                        <div class="col-md-2">
+                            <input type="number" class="form-control" step="0.01" id="price-${g.id}" value="${g.price}">
+                        </div>
+                        <div class="col-md-3 d-flex gap-2">
+                            <button type="submit" class="btn btn-primary btn-sm">💾</button>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="deleteGame('${g.id}')">🗑️</button>
                         </div>
                     </div>
-                `).join("");
+                </form>
+            </div>
+        </div>
+    `).join("");
 
             document.getElementById("gameList").innerHTML = html;
         }
