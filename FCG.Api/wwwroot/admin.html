@@ -1,123 +1,237 @@
-﻿
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>FCG Admin - Painel</title>
+    <title>Administração - FCG</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            display: flex;
-        }
-
-        #sidebar {
-            width: 250px;
-            height: 100vh;
-            background-color: #f8f9fa;
-            padding: 1rem;
-        }
-
-        #content {
-            flex-grow: 1;
-            padding: 2rem;
-        }
-
-        .section {
-            display: none;
-        }
-
-            .section.active {
-                display: block;
-            }
-    </style>
 </head>
-<body>
-    <!-- Sidebar -->
-    <div id="sidebar">
-        <h4>🔧 Admin Panel</h4>
-        <hr>
-        <button class="btn btn-outline-primary w-100 mb-2" onclick="showSection('games')">🎮 Gerenciar Jogos</button>
-        <button class="btn btn-outline-primary w-100" onclick="showSection('users')">👥 Gerenciar Usuários</button>
-        <hr>
-        <button class="btn btn-secondary w-100" onclick="window.location.href='dashboard.html'">↩️ Voltar</button>
-    </div>
+<body class="bg-light">
+    <div class="container mt-5">
+        <h2 class="mb-4 text-primary">🔧 Administração FCG</h2>
 
-    <!-- Conteúdo principal -->
-    <div id="content">
-        <!-- Seção de Jogos -->
-        <div id="games" class="section active">
-            <h3>🎮 Gerenciar Jogos</h3>
-            <!-- Filtro -->
-            <input type="text" class="form-control my-3" placeholder="Buscar jogo por título" id="search-game" onkeyup="filterGames()">
+        <ul class="nav nav-tabs mb-4">
+            <li class="nav-item"><a class="nav-link active" href="#" onclick="switchTab('users')">👥 Usuários</a></li>
+            <li class="nav-item"><a class="nav-link" href="#" onclick="switchTab('games')">🎮 Jogos</a></li>
+            <li class="nav-item ms-auto"><a class="btn btn-outline-secondary" href="dashboard.html">← Voltar</a></li>
+        </ul>
 
-            <!-- Cadastro -->
-            <form id="game-form" class="row g-2 mb-4">
-                <div class="col-md-4">
-                    <input type="text" class="form-control" id="title" placeholder="Título" required>
-                </div>
-                <div class="col-md-4">
-                    <input type="text" class="form-control" id="description" placeholder="Descrição" required>
-                </div>
-                <div class="col-md-2">
-                    <input type="number" step="0.01" class="form-control" id="price" placeholder="Preço" required>
-                </div>
-                <div class="col-md-2">
-                    <button class="btn btn-success w-100" type="submit">Cadastrar</button>
-                </div>
-            </form>
-
-            <div id="game-result" class="mb-3"></div>
-            <div id="game-list"></div>
+        <!-- Aba de Usuários -->
+        <div id="userTabContent">
+            <h4>👥 Gerenciar Usuários</h4>
+            <div class="mb-3">
+                <input class="form-control" id="userSearch" placeholder="🔎 Buscar por nome ou email" oninput="filterUsers()">
+            </div>
+            <div id="userList"></div>
         </div>
 
-        <!-- Seção de Usuários -->
-        <div id="users" class="section">
-            <h3>👥 Gerenciar Usuários</h3>
-            <input type="text" class="form-control my-3" id="search-user" placeholder="Buscar por nome ou e-mail" onkeyup="filterUsers()">
+        <!-- Aba de Jogos -->
+        <div id="gameTabContent" style="display: none;">
+            <h4>🎮 Gerenciar Jogos</h4>
+            <div class="mb-3">
+                <input class="form-control" id="gameSearch" placeholder="🔎 Buscar por título" oninput="filterGames()">
+            </div>
 
-            <form id="create-user-form" class="row g-2 mb-4">
-                <div class="col-md-3"><input type="text" class="form-control" id="new-name" placeholder="Nome" required></div>
-                <div class="col-md-3"><input type="email" class="form-control" id="new-email" placeholder="Email" required></div>
-                <div class="col-md-3"><input type="password" class="form-control" id="new-password" placeholder="Senha" required></div>
-                <div class="col-md-2">
-                    <select class="form-select" id="new-role" required>
-                        <option value="User">Usuário</option>
-                        <option value="Admin">Admin</option>
-                    </select>
-                </div>
-                <div class="col-md-1">
-                    <button class="btn btn-success w-100" type="submit">Criar</button>
-                </div>
-            </form>
+            <div class="mb-4">
+                <form onsubmit="createGame(event)">
+                    <div class="row g-2">
+                        <div class="col-md-3"><input required class="form-control" id="title" placeholder="Título do Jogo"></div>
+                        <div class="col-md-4"><textarea required class="form-control" id="description" placeholder="Descrição" rows="2" style="resize: vertical; min-height: 38px;"></textarea></div>
+                        <div class="col-md-2"><input required type="number" class="form-control" id="price" placeholder="Preço"></div>
+                        <div class="col-md-3"><button class="btn btn-success w-100">➕ Adicionar Jogo</button></div>
+                    </div>
+                </form>
+            </div>
 
-            <div id="user-list"></div>
+            <div id="gameList"></div>
         </div>
     </div>
 
     <script>
         const api = "";
         const token = localStorage.getItem("fcg_token");
+        let allUsers = [];
+        let allGames = [];
 
         if (!token) {
-            alert("Acesso negado. Faça login.");
+            alert("Acesso não autorizado.");
             window.location.href = "login.html";
         }
 
-        fetch(`${api}/me`, {
-            headers: { "Authorization": `Bearer ${token}` }
-        }).then(r => r.json()).then(data => {
-            if (data.role !== "Admin") {
-                alert("Apenas administradores podem acessar esta página.");
-                window.location.href = "dashboard.html";
+        function switchTab(tab) {
+            document.querySelectorAll(".nav-link").forEach(e => e.classList.remove("active"));
+            if (tab === 'users') {
+                document.getElementById("userTabContent").style.display = "block";
+                document.getElementById("gameTabContent").style.display = "none";
+                listUsers();
+                document.querySelector(".nav-tabs .nav-link:nth-child(1)").classList.add("active");
+            } else {
+                document.getElementById("userTabContent").style.display = "none";
+                document.getElementById("gameTabContent").style.display = "block";
+                listGamesAdmin();
+                document.querySelector(".nav-tabs .nav-link:nth-child(2)").classList.add("active");
             }
-        });
-
-        function showSection(id) {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
         }
 
-        document.getElementById("game-form").addEventListener("submit", async (e) => {
+        // === Usuários ===
+        function listUsers() {
+            fetch(`${api}/users`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            })
+                .then(r => r.json())
+                .then(users => {
+                    allUsers = users;
+                    renderUserList(users);
+                });
+        }
+
+        function renderUserList(users) {
+            const html = users.map(u => `
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <form onsubmit="updateUser(event, '${u.id}')">
+                                <div class="row g-2 align-items-center">
+                                    <div class="col-md-3">
+                                        <input class="form-control" type="text" value="${u.name}" id="name-${u.id}">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input class="form-control" type="email" value="${u.email}" id="email-${u.id}">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <select class="form-select" id="role-${u.id}">
+                                            <option ${u.role === 'User' ? 'selected' : ''}>User</option>
+                                            <option ${u.role === 'Admin' ? 'selected' : ''}>Admin</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 d-flex gap-2">
+                                        <button type="submit" class="btn btn-primary btn-sm">💾</button>
+                                        <button type="button" class="btn btn-warning btn-sm" onclick="resetPassword('${u.id}', '${u.email}')">🔐</button>
+                                        <button type="button" class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}')">🗑️</button>                                     
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                `).join("");
+
+            document.getElementById("userList").innerHTML = html;
+        }
+
+        function updateUser(e, id) {
+            e.preventDefault();
+            const body = {
+                name: document.getElementById(`name-${id}`).value,
+                email: document.getElementById(`email-${id}`).value,
+                role: document.getElementById(`role-${id}`).value
+            };
+
+            fetch(`${api}/users/${id}`, {
+                method: "PUT",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(body)
+            })
+                .then(async r => {
+                    const msg = await r.text();
+                    alert(r.ok ? "✅ Atualizado!" : "❌ Erro: " + msg);
+                    listUsers();
+                });
+        }
+
+        function deleteUser(id) {
+            if (!confirm("Tem certeza que deseja excluir este usuário?")) return;
+
+            fetch(`${api}/users/${id}`, {
+                method: "DELETE",
+                headers: { "Authorization": `Bearer ${token}` }
+            })
+                .then(async r => {
+                    const msg = await r.text();
+                    alert(r.ok ? "✅ Usuário removido!" : "❌ Erro: " + msg);
+                    listUsers();
+                });
+        }
+
+        function resetPassword(id, email) {
+            if (!confirm(`Redefinir a senha para o usuário:\n${email}?`)) return;
+
+            fetch(`${api}/users/${id}/reset-password`, {
+                method: "POST",
+                headers: { "Authorization": `Bearer ${token}` }
+            })
+                .then(async r => {
+                    const msg = await r.text();
+                    alert(r.ok ? `🔐 Nova senha enviada para ${email}:\n${msg}` : "❌ Erro: " + msg);
+                });
+        }
+
+        function filterUsers() {
+            const term = document.getElementById("userSearch").value.toLowerCase();
+            const filtered = allUsers.filter(u =>
+                u.name.toLowerCase().includes(term) || u.email.toLowerCase().includes(term)
+            );
+            renderUserList(filtered);
+        }
+
+        // === Jogos ===
+        function listGamesAdmin() {
+            fetch(`${api}/games`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            })
+                .then(r => r.json())
+                .then(games => {
+                    allGames = games;
+                    renderGameList(games);
+                });
+        }
+
+        function renderGameList(games) {
+            const html = games.map(g => `
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <form onsubmit="updateGame(event, '${g.id}')">
+                                <div class="row g-2 align-items-center">
+                                    <div class="col-md-3"><input class="form-control" type="text" value="${g.title}" id="game-title-${g.id}"></div>
+                                    <div class="col-md-4"><textarea class="form-control" id="description-${g.id}" rows="2" style="resize: vertical; min-height: 38px;">${g.description}</textarea></div>
+                                    <div class="col-md-2"><input class="form-control" type="number" value="${g.price}" id="game-price-${g.id}"></div>
+                                    <div class="col-md-3 d-flex gap-2">
+                                        <button class="btn btn-primary btn-sm">💾</button>
+                                        <button type="button" class="btn btn-danger btn-sm" onclick="deleteGame('${g.id}')">🗑️</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                `).join("");
+
+            document.getElementById("gameList").innerHTML = html;
+        }
+
+        function updateGame(e, id) {
+            e.preventDefault();
+            const body = {
+                title: document.getElementById(`game-title-${id}`).value,
+                description: document.getElementById(`game-desc-${id}`).value,
+                price: parseFloat(document.getElementById(`game-price-${id}`).value)
+            };
+
+            fetch(`${api}/games/${id}`, {
+                method: "PUT",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(body)
+            })
+                .then(async r => {
+                    const msg = await r.text();
+                    alert(r.ok ? "✅ Jogo atualizado!" : "❌ Erro: " + msg);
+                    listGamesAdmin();
+                });
+        }
+
+        function createGame(e) {
             e.preventDefault();
             const body = {
                 title: document.getElementById("title").value,
@@ -125,175 +239,52 @@
                 price: parseFloat(document.getElementById("price").value)
             };
 
-            const res = await fetch(`${api}/games`, {
+            fetch(`${api}/games`, {
                 method: "POST",
                 headers: {
                     "Authorization": `Bearer ${token}`,
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify(body)
-            });
-
-            const resultBox = document.getElementById("game-result");
-            if (res.ok) {
-                resultBox.innerHTML = `<div class="alert alert-success">✅ Jogo cadastrado!</div>`;
-                document.getElementById("game-form").reset();
-                loadGames();
-            } else {
-                const error = await res.text();
-                resultBox.innerHTML = `<div class="alert alert-danger">❌ ${error}</div>`;
-            }
-        });
-
-        async function loadGames() {
-            const res = await fetch(`${api}/games`);
-            const games = await res.json();
-            window.allGames = games;
-            renderGameList(games);
-        }
-
-        function renderGameList(games) {
-            const html = games.map(g => `
-                    <div class="border rounded p-3 mb-2">
-                        <strong>${g.title}</strong><br>
-                        ${g.description}<br>
-                        💰 R$${g.price.toFixed(2)}<br>
-                        <button class="btn btn-sm btn-outline-danger mt-2" onclick="deleteGame('${g.id}')">🗑️ Excluir</button>
-                    </div>
-                `).join("");
-            document.getElementById("game-list").innerHTML = html;
-        }
-
-        function deleteGame(gameId) {
-            if (!confirm("Tem certeza que deseja excluir este jogo?")) return;
-
-            fetch(`${api}/games/${gameId}`, {
-                method: "DELETE",
-                headers: {
-                    "Authorization": `Bearer ${token}`
-                }
             })
                 .then(async r => {
                     const msg = await r.text();
                     if (r.ok) {
-                        alert("✅ " + msg);
-                        loadGames();
+                        alert("✅ Jogo adicionado com Sucesso!");
+                        document.getElementById("title").value = "";
+                        document.getElementById("description").value = "";
+                        document.getElementById("price").value = "";
+                        listGamesAdmin();
                     } else {
-                        alert("❌ " + msg);
+                        alert("❌ Erro: " + msg);
                     }
+                });
+        }
+
+        function deleteGame(id) {
+            if (!confirm("Deseja remover este jogo?")) return;
+
+            fetch(`${api}/games/${id}`, {
+                method: "DELETE",
+                headers: { "Authorization": `Bearer ${token}` }
+            })
+                .then(async r => {
+                    const msg = await r.text();
+                    alert(r.ok ? "✅ Jogo removido com Sucesso!" : "❌ Erro: " + msg);
+                    listGamesAdmin();
                 });
         }
 
         function filterGames() {
-            const query = document.getElementById("search-game").value.toLowerCase();
-            const filtered = window.allGames.filter(g => g.title.toLowerCase().includes(query));
+            const term = document.getElementById("gameSearch").value.toLowerCase();
+            const filtered = allGames.filter(g =>
+                g.title.toLowerCase().includes(term)
+            );
             renderGameList(filtered);
         }
 
-        async function loadUsers() {
-            const res = await fetch(`${api}/users`, {
-                headers: { "Authorization": `Bearer ${token}` }
-            });
-            const users = await res.json();
-            window.allUsers = users;
-            renderUserList(users);
-        }
-
-        function renderUserList(users) {
-            const html = users.map(u => `
-                    <div class="border rounded p-3 mb-2">
-                        <strong>${u.name}</strong> (${u.email}) - <em>${u.role}</em><br>
-                        <button class="btn btn-sm btn-outline-warning mt-2 me-2" onclick="editUser('${u.id}', '${u.name}', '${u.email}', '${u.role}')">✏️ Editar</button>
-                        <button class="btn btn-sm btn-outline-danger mt-2" onclick="deleteUser('${u.id}')">🗑️ Excluir</button>
-                    </div>
-                `).join("");
-            document.getElementById("user-list").innerHTML = html;
-        }
-
-        function deleteUser(userId) {
-            if (!confirm("Tem certeza que deseja excluir este usuário?")) return;
-
-            fetch(`${api}/users/${userId}`, {
-                method: "DELETE",
-                headers: {
-                    "Authorization": `Bearer ${token}`
-                }
-            })
-                .then(async r => {
-                    const msg = await r.text();
-                    if (r.ok) {
-                        alert("✅ " + msg);
-                        loadUsers();
-                    } else {
-                        alert("❌ " + msg);
-                    }
-                });
-        }
-
-        function filterUsers() {
-            const query = document.getElementById("search-user").value.toLowerCase();
-            const filtered = window.allUsers.filter(u =>
-                u.name.toLowerCase().includes(query) || u.email.toLowerCase().includes(query)
-            );
-            renderUserList(filtered);
-        }
-
-        function editUser(id, name, email, role) {
-            const newName = prompt("Novo nome:", name);
-            const newEmail = prompt("Novo e-mail:", email);
-            const newRole = prompt("Novo perfil (User/Admin):", role);
-
-            if (newName && newEmail && newRole) {
-                fetch(`${api}/users/${id}`, {
-                    method: "PUT",
-                    headers: {
-                        "Authorization": `Bearer ${token}`,
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ name: newName, email: newEmail, role: newRole })
-                })
-                    .then(r => {
-                        if (r.ok) {
-                            alert("Usuário atualizado!");
-                            loadUsers();
-                        } else {
-                            r.text().then(t => alert("Erro: " + t));
-                        }
-                    });
-            }
-        }
-
-        document.getElementById("create-user-form").addEventListener("submit", async (e) => {
-            e.preventDefault();
-
-            const body = {
-                name: document.getElementById("new-name").value,
-                email: document.getElementById("new-email").value,
-                passwordHash: document.getElementById("new-password").value,
-                role: document.getElementById("new-role").value
-            };
-
-            const res = await fetch(`${api}/users`, {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${token}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(body)
-            });
-
-            if (res.ok) {
-                alert("Usuário criado!");
-                e.target.reset();
-                loadUsers();
-            } else {
-                const msg = await res.text();
-                alert("Erro: " + msg);
-            }
-        });
-
-        loadGames();
-        loadUsers();
+        // Inicial
+        switchTab('users');
     </script>
 </body>
 </html>

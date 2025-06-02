@@ -146,17 +146,33 @@
             })
                 .then(r => r.json())
                 .then(games => {
-                    const html = games.map(g => `
-                        <div class="card mb-3">
-                            <div class="card-body">
-                                <h5>${g.title}</h5>
-                                <p>${g.description}</p>
-                                <p><strong>R$${g.price}</strong></p>
-                                <button class="btn btn-outline-primary btn-sm" onclick="buyGame('${g.id}')">🎁 Adquirir</button>
-                            </div>
+                    // Primeiro, buscar jogos já adquiridos
+                    fetch(`${api}/me/games`, {
+                        headers: { "Authorization": `Bearer ${token}` }
+                    })
+                        .then(r => r.json())
+                        .then(myGames => {
+                            const ownedIds = myGames.map(g => g.id);
+
+                            const html = games.map(g => {
+                                const alreadyOwned = ownedIds.includes(g.id);
+                                return `
+                    <div class="card mb-3 shadow-sm border-${alreadyOwned ? 'secondary' : 'primary'}">
+                        <div class="card-body">
+                            <h5 class="card-title">${g.title}</h5>
+                            <p class="card-text">${g.description}</p>
+                            <p><strong>R$${g.price}</strong></p>
+                            <button class="btn btn-${alreadyOwned ? 'secondary' : 'primary'} btn-sm"
+                                    ${alreadyOwned ? 'disabled' : `onclick="buyGame('${g.id}')"`}>
+                                ${alreadyOwned ? '🎮 Já adquirido' : '🎁 Adquirir'}
+                            </button>
                         </div>
-                    `).join("");
-                    show(`<h4>🛒 Jogos Disponíveis</h4>${html}`);
+                    </div>
+                `;
+                            }).join("");
+
+                            show(`<h4>🛒 Jogos Disponíveis</h4>${html}`);
+                        });
                 });
         }
 
@@ -168,7 +184,7 @@
                 .then(async r => {
                     const msg = await r.text();
                     if (r.ok) {
-                        alert("🎉 Jogo adquirido!");
+                        alert("🎉 Parabéns! Jogo adquirido com Sucesso!");
                         myGames();
                     } else {
                         alert("❌ " + msg);
