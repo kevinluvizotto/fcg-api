@@ -64,12 +64,11 @@
             </div>
             <button type="submit" class="btn btn-primary w-100">🎮 Entrar</button>
         </form>
-    
+
         <div class="text-center mt-3">
             <button class="btn btn-outline-secondary w-100" onclick="toggleRegister()">Primeiro acesso? Criar conta</button>
         </div>
 
-        <!-- Formulário de Registro (oculto por padrão) -->
         <div class="card mt-3 d-none" id="registerCard">
             <div class="card-body">
                 <form onsubmit="register(event)">
@@ -105,16 +104,14 @@
                     if (r.ok) {
                         const result = await r.json();
                         localStorage.setItem("fcg_token", result.token);
-                        window.location.href = "dashboard.html";
-                    } else if (r.status === 401) {
-                        alert("❌ E-mail ou senha inválidos.");
+                        setTimeout(() => window.location.href = "dashboard.html", 100); // delay para garantir salvamento do token
                     } else {
                         const msg = await r.text();
-                        alert("❌ Erro inesperado: " + msg);
+                        alert("❌ Usuário ou senha inválido!!! " + msg);
                     }
                 })
-                .catch(err => {
-                    alert("❌ Erro de rede ou servidor: " + err.message);
+                .catch(() => {
+                    alert("❌ Erro de rede ou servidor. Verifique a URL da API e sua conexão.");
                 });
         }
 

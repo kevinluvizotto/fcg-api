@@ -38,19 +38,28 @@
         const token = localStorage.getItem("fcg_token");
 
         if (!token) {
-            alert("Você precisa fazer login primeiro.");
+            alert("❌ Sessão expirada. Faça login novamente.");
             window.location.href = "login.html";
+        } else {
+            fetch(`${api}/me`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            })
+                .then(r => {
+                    if (!r.ok) throw new Error("Autenticação falhou");
+                    return r.json();
+                })
+                .then(data => {
+                    if (data.role === "Admin") {
+                        document.getElementById("admin-btn").style.display = "block";
+                    }
+                    loadProfile(data);
+                })
+                .catch(err => {
+                    alert("❌ Erro: " + err.message);
+                    localStorage.removeItem("fcg_token");
+                    window.location.href = "login.html";
+                });
         }
-
-        fetch(`${api}/me`, {
-            headers: { "Authorization": `Bearer ${token}` }
-        }).then(r => r.json())
-            .then(data => {
-                if (data.role === "Admin") {
-                    document.getElementById("admin-btn").style.display = "block";
-                }
-                loadProfile(data);
-            });
 
         function showTab(tab) {
             if (tab === "profile") getProfile();
