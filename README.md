@@ -1,17 +1,17 @@
 # FIAP Cloud Games (FCG) API
 
-Uma API RESTful desenvolvida em **.NET 8** para gerenciar usu·rios e seus jogos adquiridos, como parte do desafio do **Tech Challenge FIAP**. O sistema oferece autenticaÁ„o via JWT, autorizaÁ„o baseada em perfis (User/Admin), e conta com um portal web simples construÌdo com HTML/JavaScript puro.
+Uma API RESTful desenvolvida em **.NET 8** para gerenciar usu√°rios e seus jogos adquiridos, como parte do desafio do **Tech Challenge FIAP**. O sistema oferece autentica√ß√£o via JWT, autoriza√ß√£o baseada em perfis (User/Admin), e conta com um portal web simples constru√≠do com HTML/JavaScript puro.
 
 ---
 
 ## Objetivos
 
-- Criar um backend seguro e escal·vel usando .NET 8 e Entity Framework Core
-- Implementar funcionalidades essenciais para gerenciamento de usu·rios e jogos
-- Aplicar boas pr·ticas de arquitetura como DDD, TDD e Clean Code
-- Permitir aquisiÁ„o de jogos por usu·rios autenticados
-- Gerenciar usu·rios e jogos com permissıes administrativas
-- Expor a aplicaÁ„o em ambiente cloud (Azure App Service)
+- Criar um backend seguro e escal√°vel usando .NET 8 e Entity Framework Core
+- Implementar funcionalidades essenciais para gerenciamento de usu√°rios e jogos
+- Aplicar boas pr√°ticas de arquitetura como DDD, TDD e Clean Code
+- Permitir aquisi√ß√£o de jogos por usu√°rios autenticados
+- Gerenciar usu√°rios e jogos com permiss√µes administrativas
+- Expor a aplica√ß√£o em ambiente cloud (Azure App Service com Docker)
 
 ---
 
@@ -21,59 +21,59 @@ Uma API RESTful desenvolvida em **.NET 8** para gerenciar usu·rios e seus jogos 
 - Entity Framework Core
 - SQL Server (Azure SQL Database)
 - JWT (JSON Web Token)
-- xUnit (Testes Unit·rios)
-- GitHub Actions (CI/CD para Azure)
-- Azure App Service (PublicaÁ„o)
+- xUnit (Testes Unit√°rios)
+- GitHub Actions (CI/CD com Docker)
+- Azure App Service (com cont√™iner Linux)
 - HTML + JavaScript (Frontend simples)
 
 ---
 
 ## Funcionalidades
 
-### Usu·rios
+### Usu√°rios
 
-| AÁ„o                     | MÈtodo | Endpoint          | AutorizaÁ„o  |
-|--------------------------|--------|-------------------|--------------|
-| Criar usu·rio            | POST   | `/users`          | P˙blica      |
-| Login e obter JWT        | POST   | `/login`          | P˙blica      |
-| Consultar perfil         | GET    | `/me`             | Autenticado  |
-| Atualizar perfil         | PUT    | `/me`             | Autenticado  |
-| Alterar senha            | PUT    | `/me/password`    | Autenticado  |
-| Listar todos usu·rios    | GET    | `/users`          | Admin        |
-| Atualizar usu·rio (Admin)| PUT    | `/users/{id}`     | Admin        |
-| Excluir usu·rio          | DELETE | `/users/{id}`     | Admin        |
+| A√ß√£o                      | M√©todo | Endpoint          | Autoriza√ß√£o   |
+|---------------------------|--------|-------------------|---------------|
+| Criar usu√°rio             | POST   | `/users`          | P√∫blica       |
+| Login e obter JWT         | POST   | `/login`          | P√∫blica       |
+| Consultar perfil          | GET    | `/me`             | Autenticado   |
+| Atualizar perfil          | PUT    | `/me`             | Autenticado   |
+| Alterar senha             | PUT    | `/me/password`    | Autenticado   |
+| Listar todos usu√°rios     | GET    | `/users`          | Admin         |
+| Atualizar usu√°rio (Admin) | PUT    | `/users/{id}`     | Admin         |
+| Excluir usu√°rio           | DELETE | `/users/{id}`     | Admin         |
 
 ### Jogos
 
-| AÁ„o                      | MÈtodo | Endpoint            | AutorizaÁ„o        |
-|---------------------------|--------|---------------------|--------------------|
-| Listar jogos disponÌveis  | GET    | `/games`            | P˙blica            |
-| Criar novo jogo           | POST   | `/games`            | Admin              |
-| Excluir jogo              | DELETE | `/games/{id}`       | Admin              |
-| Adquirir jogo             | POST   | `/me/games?gameId=` | User ou Admin      |
-| Listar meus jogos         | GET    | `/me/games`         | User ou Admin      |
-| Remover jogo da conta     | DELETE | `/me/games/{id}`    | User ou Admin      |
+| A√ß√£o                      | M√©todo | Endpoint              | Autoriza√ß√£o     |
+|---------------------------|--------|------------------------|-----------------|
+| Listar jogos dispon√≠veis  | GET    | `/games`              | P√∫blica         |
+| Criar novo jogo           | POST   | `/games`              | Admin           |
+| Excluir jogo              | DELETE | `/games/{id}`         | Admin           |
+| Adquirir jogo             | POST   | `/me/games?gameId=`   | User ou Admin   |
+| Listar meus jogos         | GET    | `/me/games`           | User ou Admin   |
+| Remover jogo da conta     | DELETE | `/me/games/{id}`      | User ou Admin   |
 
 ---
 
-## ? AplicaÁ„o de TDD no Projeto
+## üî¨ Aplica√ß√£o de TDD no Projeto
 
-O projeto aplica **TDD (Test-Driven Development)** no mÛdulo de validaÁ„o de senhas para garantir qualidade e seguranÁa desde a concepÁ„o da funcionalidade.
+O projeto aplica **TDD (Test-Driven Development)** no m√≥dulo de valida√ß√£o de senhas para garantir qualidade e seguran√ßa desde a concep√ß√£o da funcionalidade.
 
-### MÛdulo com TDD aplicado:
+### M√≥dulo com TDD aplicado:
 
-- **ValidaÁ„o de senha segura**  
-  Implementado no helper `ValidationHelper.IsValidPassword`, este mÈtodo foi escrito apÛs a criaÁ„o de testes unit·rios cobrindo os seguintes critÈrios:
-  - Senha com no mÌnimo 8 caracteres
-  - ContÈm letra, n˙mero e caractere especial
+- **Valida√ß√£o de senha segura**  
+  Implementado no helper `ValidationHelper.IsValidPassword`, este m√©todo foi escrito ap√≥s a cria√ß√£o de testes unit√°rios cobrindo os seguintes crit√©rios:
+  - Senha com no m√≠nimo 8 caracteres
+  - Cont√©m letra, n√∫mero e caractere especial
 
 ### Processo seguido:
 
-1. **Red:** Testes foram escritos antecipadamente, falhando enquanto a lÛgica ainda n„o existia.
-2. **Green:** A lÛgica foi implementada para passar nos testes.
-3. **Refactor:** A funÁ„o foi refatorada para legibilidade e reutilizaÁ„o.
+1. **Red:** Testes foram escritos antecipadamente, falhando enquanto a l√≥gica ainda n√£o existia.  
+2. **Green:** A l√≥gica foi implementada para passar nos testes.  
+3. **Refactor:** A fun√ß√£o foi refatorada para legibilidade e reutiliza√ß√£o.
 
-> Esta abordagem garante que a funcionalidade atenda aos requisitos de seguranÁa desde sua criaÁ„o, validando a aplicaÁ„o pr·tica de TDD neste projeto.
+> Esta abordagem garante que a funcionalidade atenda aos requisitos de seguran√ßa desde sua cria√ß√£o, validando a aplica√ß√£o pr√°tica de TDD neste projeto.
 
 ---
 
@@ -89,13 +89,13 @@ dotnet test
 
 ## Rodando localmente
 
-### PrÈ-requisitos
+### Pr√©-requisitos
 
 - [.NET 8 SDK](https://dotnet.microsoft.com/en-us/download)
-- [SQL Server ou Azure SQL Database]
+- SQL Server ou Azure SQL Database
 - Visual Studio Code ou Visual Studio
 
-### 1. Clone o repositÛrio
+### 1. Clone o reposit√≥rio
 
 ```bash
 git clone https://github.com/kevinluvizotto/fcg-api.git
@@ -104,7 +104,7 @@ cd fcg-api
 
 ### 2. Configure o banco de dados
 
-Atualize a string de conex„o no `appsettings.json`:
+Atualize a string de conex√£o no `appsettings.json`:
 
 ```json
 "ConnectionStrings": {
@@ -112,7 +112,7 @@ Atualize a string de conex„o no `appsettings.json`:
 }
 ```
 
-### 3. Rode as migraÁıes (opcional)
+### 3. Rode as migra√ß√µes (opcional)
 
 ```bash
 dotnet ef database update
@@ -130,9 +130,10 @@ Acesse: `https://localhost:5001`
 
 ## Deploy (Azure App Service)
 
-O projeto est· configurado para CI/CD via **GitHub Actions**. A cada push na branch `main`, a API È automaticamente publicada em:
+O projeto est√° configurado para CI/CD via **GitHub Actions**, utilizando **Docker Hub** como reposit√≥rio de imagens.  
+A cada push na branch `main`, a imagem √© automaticamente constru√≠da, publicada e a aplica√ß√£o √© reiniciada em:
 
-[`https://fcg-api-c0guh9d6aqe3bkab.brazilsouth-01.azurewebsites.net`](https://fcg-api-c0guh9d6aqe3bkab.brazilsouth-01.azurewebsites.net)
+üîó [`https://fcg-api-fase2-klztt.azurewebsites.net`](https://fcg-api-fase2-klztt.azurewebsites.net)
 
 ---
 
@@ -140,11 +141,11 @@ O projeto est· configurado para CI/CD via **GitHub Actions**. A cada push na bra
 
 **Kevin Luvizotto**  
 Principal Automation Developer  
-PÛs-graduaÁ„o em Arquitetura de Software (.NET) - FIAP  
-[linkedin.com/in/kevin-luvizotto](https://linkedin.com/in/kevin-luvizotto)
+P√≥s-gradua√ß√£o em Arquitetura de Software (.NET) - FIAP  
+üîó [linkedin.com/in/kevin-luvizotto](https://linkedin.com/in/kevin-luvizotto)
 
 ---
 
-## LicenÁa
+## Licen√ßa
 
-Este projeto È acadÍmico e n„o possui fins comerciais.
+Este projeto √© acad√™mico e n√£o possui fins comerciais.
