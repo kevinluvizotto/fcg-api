@@ -13,14 +13,10 @@ jobs:
       - name: Checkout código
         uses: actions/checkout@v4
 
-      - name: Login no Azure com Service Principal
+      - name: Login no Azure com Service Principal (via creds)
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
-          auth-type: 'client-secret'
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Deploy do container para Azure Web App
         uses: azure/webapps-deploy@v3
