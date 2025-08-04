@@ -1,29 +1,30 @@
 name: CI - Build and Test
 
 on:
-  pull_request:
   push:
-    branches:
-      - develop
+    branches: [development]
+  pull_request:
+    branches: [development]
+  workflow_dispatch:
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout do código
-      uses: actions/checkout@v3
+      - name: Checkout do código
+        uses: actions/checkout@v4
 
-    - name: Instalar .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '8.x'
+      - name: Configurar .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.x'
 
-    - name: Restaurar dependências
-      run: dotnet restore FCG.Api/FCG.Api.csproj
+      - name: Restaurar dependências
+        run: dotnet restore FCG.Api/FCG.Api.csproj
 
-    - name: Compilar o projeto
-      run: dotnet build FCG.Api/FCG.Api.csproj --configuration Release --no-restore
+      - name: Build
+        run: dotnet build FCG.Api/FCG.Api.csproj --configuration Release
 
-    - name: Rodar testes
-      run: dotnet test FCG.Tests/FCG.Tests.csproj --no-build --verbosity normal
+      - name: Testes
+        run: dotnet test
