@@ -1,1 +1,25 @@
-# cd.yml is blank to avoid any deletion from Prod when merge something.
+name: CD - Docker Deploy to Azure
+
+on:
+  push:
+    branches:
+      - production
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Login no Azure com Service Principal (via creds)
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy do container para Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'fcg-api-fase2-klztt'
+          images: 'klztt/fcg-api:latest'
