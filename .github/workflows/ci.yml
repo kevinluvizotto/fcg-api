@@ -1,0 +1,32 @@
+name: CI - Build and Test
+
+on:
+  push:
+    branches: [development]
+  pull_request:
+    branches: [production]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Configurar .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.x'
+
+      - name: Restaurar dependências
+        run: dotnet restore FCG.Api/FCG.Api.csproj
+
+      - name: Build do projeto
+        run: dotnet build FCG.Api/FCG.Api.csproj --configuration Release
+
+      - name: Executar testes
+        run: dotnet test FCG.Tests/FCG.Tests.csproj

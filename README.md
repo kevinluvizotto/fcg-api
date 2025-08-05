@@ -126,6 +126,10 @@ dotnet run --project FCG.Api
 
 Acesse: `https://localhost:5001`
 
+ou
+
+Acesse: `https://localhost:8080` se usar uma Docker Image do Projeto FCG.
+
 ---
 
 ## Deploy (Azure App Service)
