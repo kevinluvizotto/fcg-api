@@ -19,7 +19,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # ⚠️ CD sempre usa a latest
+      # latest
       - name: Pull da imagem latest
         run: docker pull klztt/fcg-api:latest
 
