@@ -19,16 +19,9 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Pull da imagem Docker
-      - name: Pull da imagem Docker
-        run: docker pull klztt/fcg-api:${{ github.sha }}
-
-      # latest 
-      - name: Tag imagem como latest
-        run: docker tag klztt/fcg-api:${{ github.sha }} klztt/fcg-api:latest
-
-      - name: Push da imagem latest
-        run: docker push klztt/fcg-api:latest
+      # ⚠️ CD sempre usa a latest
+      - name: Pull da imagem latest
+        run: docker pull klztt/fcg-api:latest
 
       - name: Deploy no Azure App Service
         uses: azure/webapps-deploy@v2
