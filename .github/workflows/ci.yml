@@ -1,15 +1,15 @@
-name: CI - Build and Test
+name: CI - Build, Test and Docker
 
 on:
   push:
     branches: [development]
   pull_request:
-    branches: [production]
+    branches: [development]
   workflow_dispatch:
 
 jobs:
-  build-and-test:
-    runs-on: windows-latest
+  build-test-docker:
+    runs-on: ubuntu-latest
     permissions:
       contents: read
 
@@ -29,4 +29,17 @@ jobs:
         run: dotnet build FCG.Api/FCG.Api.csproj --configuration Release
 
       - name: Executar testes
-        run: dotnet test FCG.Tests/FCG.Tests.csproj
+        run: dotnet test FCG.Tests/FCG.Tests.csproj --no-build --verbosity normal
+
+      # Docker
+      - name: Login no Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build da imagem Docker
+        run: docker build -t klztt/fcg-api:${{ github.sha }} .
+
+      - name: Push da imagem Docker
+        run: docker push klztt/fcg-api:${{ github.sha }}
