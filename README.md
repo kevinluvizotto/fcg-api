@@ -137,7 +137,26 @@ Acesse: `https://localhost:8080` se usar uma Docker Image do Projeto FCG.
 O projeto está configurado para CI/CD via **GitHub Actions**, utilizando **Docker Hub** como repositório de imagens.  
 A cada push na branch `main`, a imagem é automaticamente construída, publicada e a aplicação é reiniciada em:
 
-🔗 [`https://fcg-api-fase2-klztt.azurewebsites.net`](https://fcg-api-fase2-klztt.azurewebsites.net)
+🔗 [`https://fcg-api-fiap-klztt.azurewebsites.net`](https://fcg-api-fiap-klztt.azurewebsites.net)
+
+---
+
+## Testes rápidos de API para o FIAP Cloud Games App(sanity check)
+via PowerShell:
+
+### Swagger (200)
+Invoke-WebRequest https://fcg-api-fiap-klztt.azurewebsites.net/swagger -UseBasicParsing | Select-Object StatusCode
+
+### Health check simples: bater no /games (GET público no seu código)
+Invoke-WebRequest https://fcg-api-fiap-klztt.azurewebsites.net/games -UseBasicParsing | Select-Object StatusCode
+
+### Burst leve para gerar métricas
+1..20 | % { Invoke-WebRequest https://fcg-api-fiap-klztt.azurewebsites.net/games -UseBasicParsing > $null }
+
+via curl:
+
+curl -I https://fcg-api-fiap-klztt.azurewebsites.net/swagger
+curl -s -o /dev/null -w "%{http_code}\n" https://fcg-api-fiap-klztt.azurewebsites.net/games
 
 ---
 
