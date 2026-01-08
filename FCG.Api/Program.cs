@@ -13,9 +13,24 @@ using Microsoft.OpenApi.Models;
 using System.Security.Claims;
 using System.Text;
 
+static bool LooksLikeBcrypt(string? hash)
+{
+    if (string.IsNullOrWhiteSpace(hash)) return false;
+    return hash.StartsWith("$2a$") || hash.StartsWith("$2b$") || hash.StartsWith("$2y$");
+}
+
 var builder = WebApplication.CreateBuilder(args);
 
-builder.WebHost.UseUrls("http://*:80");
+// ✅ Não force porta 80 no DEV (deixe o launchSettings mandar)
+// Em produção/container, tente respeitar PORT/WEBSITES_PORT
+if (!builder.Environment.IsDevelopment())
+{
+    var port = Environment.GetEnvironmentVariable("WEBSITES_PORT")
+              ?? Environment.GetEnvironmentVariable("PORT");
+
+    if (!string.IsNullOrWhiteSpace(port))
+        builder.WebHost.UseUrls($"http://*:{port}");
+}
 
 // 💾 Banco de Dados
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -26,6 +41,10 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 );
 
 // 🔐 JWT
+var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? throw new InvalidOperationException("Config Jwt:Issuer não encontrada.");
+var jwtAudience = builder.Configuration["Jwt:Audience"] ?? throw new InvalidOperationException("Config Jwt:Audience não encontrada.");
+var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("Config Jwt:Key não encontrada.");
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -35,9 +54,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtAudience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
         };
     });
 
@@ -87,7 +106,13 @@ app.UseSwaggerUI(c =>
 
 app.UseDefaultFiles();
 app.UseStaticFiles();
-app.UseHttpsRedirection();
+
+// ✅ Evita warning/redirect quebrado no DEV quando rodando em HTTP
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseErrorHandling();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -98,11 +123,42 @@ app.MapGet("/", context =>
     return Task.CompletedTask;
 });
 
-// ✅ LOGIN
-app.MapPost("/login", async (LoginDto login, ApplicationDbContext db, JwtService jwt) =>
+// ✅ LOGIN (aceita senha em texto simples; migra legado para bcrypt)
+app.MapPost("/login", async (LoginDto login, ApplicationDbContext db, JwtService jwt, ILoggerFactory loggerFactory) =>
 {
+    var logger = loggerFactory.CreateLogger("Login");
+
     var user = await db.Users.FirstOrDefaultAsync(u => u.Email == login.Email);
-    if (user == null || !BCrypt.Net.BCrypt.Verify(login.PasswordHash, user.PasswordHash))
+    if (user is null)
+        return Results.Unauthorized();
+
+    var stored = user.PasswordHash ?? string.Empty;
+
+    // Aqui, login.PasswordHash = senha digitada (texto puro)
+    var inputPassword = login.PasswordHash;
+
+    bool ok;
+
+    if (LooksLikeBcrypt(stored))
+    {
+        // caminho normal
+        ok = BCrypt.Net.BCrypt.Verify(inputPassword, stored);
+    }
+    else
+    {
+        // legado (texto puro no DB)
+        ok = inputPassword == stored;
+
+        // migra para bcrypt na primeira autenticação bem sucedida
+        if (ok)
+        {
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(inputPassword);
+            await db.SaveChangesAsync();
+            logger.LogInformation("Usuário {Email} migrou senha de texto puro para BCrypt.", user.Email);
+        }
+    }
+
+    if (!ok)
         return Results.Unauthorized();
 
     var token = jwt.GenerateToken(user.Email, user.Role);
@@ -116,21 +172,29 @@ app.MapPost("/users", async (User user, ApplicationDbContext db) =>
     if (await db.Users.AnyAsync(u => u.Email == user.Email))
         return Results.BadRequest("E-mail já em uso.");
 
+    // user.PasswordHash = senha em texto puro (nome do campo legado)
     if (!ValidationHelper.IsValidPassword(user.PasswordHash))
         return Results.BadRequest("Senha inválida.");
 
     user.Id = Guid.NewGuid();
+
+    // salva sempre como bcrypt
     user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(user.PasswordHash);
+
     db.Users.Add(user);
     await db.SaveChangesAsync();
 
-    return Results.Created($"/users/{user.Id}", new UserDto { Id = user.Id, Name = user.Name, Email = user.Email, Role = user.Role });
+    return Results.Created($"/users/{user.Id}",
+        new UserDto { Id = user.Id, Name = user.Name, Email = user.Email, Role = user.Role });
 })
 .WithTags("Usuários");
 
 app.MapGet("/users", [Authorize(Roles = "Admin")] async (ApplicationDbContext db) =>
 {
-    var users = await db.Users.Select(u => new UserDto { Id = u.Id, Name = u.Name, Email = u.Email, Role = u.Role }).ToListAsync();
+    var users = await db.Users
+        .Select(u => new UserDto { Id = u.Id, Name = u.Name, Email = u.Email, Role = u.Role })
+        .ToListAsync();
+
     return Results.Ok(users);
 })
 .WithTags("Usuários");
@@ -144,6 +208,7 @@ app.MapPut("/users/{id}", [Authorize(Roles = "Admin")] async (Guid id, UserUpdat
     user.Email = input.Email;
     user.Role = input.Role;
     await db.SaveChangesAsync();
+
     return Results.Ok("Usuário atualizado com sucesso.");
 })
 .WithTags("Usuários");
@@ -155,6 +220,7 @@ app.MapDelete("/users/{id}", [Authorize(Roles = "Admin")] async (Guid id, Applic
 
     db.Users.Remove(user);
     await db.SaveChangesAsync();
+
     return Results.Ok("Usuário removido.");
 })
 .WithTags("Usuários");
@@ -181,17 +247,25 @@ app.MapPut("/me", [Authorize] async (ClaimsPrincipal user, UpdateUserDto input, 
     dbUser.Name = input.Name;
     dbUser.Email = input.Email;
     await db.SaveChangesAsync();
+
     return Results.Ok();
 })
 .WithTags("Perfil");
 
+// ✅ /me/password com suporte legado (texto puro) + bcrypt
 app.MapPut("/me/password", [Authorize] async (ClaimsPrincipal user, UpdatePasswordDto pwd, ApplicationDbContext db) =>
 {
     var email = user.FindFirst(ClaimTypes.Email)?.Value;
     var dbUser = await db.Users.FirstOrDefaultAsync(u => u.Email == email);
     if (dbUser is null) return Results.NotFound();
 
-    if (!BCrypt.Net.BCrypt.Verify(pwd.CurrentPassword, dbUser.PasswordHash))
+    var stored = dbUser.PasswordHash ?? string.Empty;
+
+    bool currentOk = LooksLikeBcrypt(stored)
+        ? BCrypt.Net.BCrypt.Verify(pwd.CurrentPassword, stored)
+        : pwd.CurrentPassword == stored;
+
+    if (!currentOk)
         return Results.BadRequest("Senha atual incorreta.");
 
     if (!ValidationHelper.IsValidPassword(pwd.NewPassword))
@@ -199,6 +273,7 @@ app.MapPut("/me/password", [Authorize] async (ClaimsPrincipal user, UpdatePasswo
 
     dbUser.PasswordHash = BCrypt.Net.BCrypt.HashPassword(pwd.NewPassword);
     await db.SaveChangesAsync();
+
     return Results.Ok("Senha atualizada.");
 })
 .WithTags("Perfil");
@@ -235,6 +310,7 @@ app.MapPost("/games", [Authorize(Roles = "Admin")] async (Game game, Application
     game.Id = Guid.NewGuid();
     db.Games.Add(game);
     await db.SaveChangesAsync();
+
     return Results.Created($"/games/{game.Id}", game);
 })
 .WithTags("Jogos");
@@ -246,6 +322,7 @@ app.MapDelete("/games/{id}", [Authorize(Roles = "Admin")] async (Guid id, Applic
 
     db.Games.Remove(game);
     await db.SaveChangesAsync();
+
     return Results.Ok("Jogo excluído.");
 })
 .WithTags("Jogos");
@@ -264,6 +341,7 @@ app.MapPut("/games/{id}", [Authorize(Roles = "Admin")] async (Guid id, Game upda
     game.Price = updatedGame.Price;
 
     await db.SaveChangesAsync();
+
     return Results.Ok("Jogo atualizado com sucesso.");
 })
 .WithTags("Jogos");
@@ -296,6 +374,7 @@ app.MapPost("/me/games", [Authorize] async (HttpContext http, ApplicationDbConte
 
     user.Games.Add(game);
     await db.SaveChangesAsync();
+
     return Results.Ok("Jogo adquirido.");
 })
 .WithTags("Biblioteca");
@@ -311,6 +390,7 @@ app.MapDelete("/me/games/{gameId}", [Authorize] async (ClaimsPrincipal user, Gui
 
     dbUser.Games.Remove(game);
     await db.SaveChangesAsync();
+
     return Results.Ok("Jogo removido.");
 })
 .WithTags("Biblioteca");

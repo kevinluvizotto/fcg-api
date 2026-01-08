@@ -6,6 +6,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
+	    <CompressionEnabled>false</CompressionEnabled>
+	</PropertyGroup>
+
   <ItemGroup>
     <Compile Remove="NewFolder\**" />
     <Content Remove="NewFolder\**" />
